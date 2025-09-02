@@ -8,15 +8,17 @@ namespace GADE6122
 {
     public class Position
     {
+        // Fields
         private int _x;
         private int _y;
 
+        // Constructor
         public Position(int x, int y)
         {
             _x = x;
             _y = y;
         }
-
+        // Properties
         public int X
         {
             get => _x;

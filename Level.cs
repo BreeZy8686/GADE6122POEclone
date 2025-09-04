@@ -33,8 +33,10 @@ namespace GADE6122
             Tile tile = type switch
             {
                 TileType.Empty => new EmptyTile(position),
-                 => throw new ArgumentException("Invalid TileType")
+                // Add other TileType cases here if needed
+                _ => throw new ArgumentException("Invalid TileType")
             };
+
             _tiles[position.X, position.Y] = tile;
             return tile;
         }

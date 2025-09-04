@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 
 namespace GADE6122
 {
-    internal class EmptyTile
+    public class EmptyTile : Tile
     {
+        public EmptyTile(Position position) : base(position)
+        {
+        }
+
+        public override char Display => '.';
     }
 }

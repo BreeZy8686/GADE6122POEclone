@@ -77,5 +77,11 @@ namespace GADE6122
 
         // Exposes the vision array to other classes if needed.
         public Tile[] Vision => vision;
+
+        // inside CharacterTile class
+        public void MoveTo(Position newPosition)
+        {
+            Position = newPosition; // allowed because setter is protected in Tile
+        }
     }
 }

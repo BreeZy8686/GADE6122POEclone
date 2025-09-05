@@ -10,6 +10,6 @@ namespace GADE6122
         {
         public WallTile(Position position) : base(position) { }
 
-        public override char Display => '█';
+        public override char Display => '█'; // wall block
     }
 }

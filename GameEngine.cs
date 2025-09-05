@@ -31,5 +31,38 @@ namespace GADE6122
         {
             return CurrentLevel.ToString();
         }
+        // Tries to move the hero in the requested direction.
+        // Returns true if the move succeeded (empty target), false otherwise.
+        private bool MoveHero(Direction direction)
+        {
+            if (direction == Direction.None)
+                return false;
+
+            var hero = CurrentLevel.Hero;
+
+            // get the tile next to the hero based on direction:
+            // we can use (int)direction because enum values match vision indexes
+            int idx = (int)direction;
+            Tile target = hero.Vision[idx];
+
+            // if the target tile is not empty, the move fails
+            if (target is not EmptyTile)
+                return false;
+
+            // swap hero with the empty tile on the level grid
+            CurrentLevel.SwapTiles(hero, target);
+
+            // refresh hero's vision after the swap
+            hero.UpdateVision(CurrentLevel);
+
+            return true;
+        }
+
+        // Public entry point that the Form will call.
+        public void TriggerMovement(Direction direction)
+        {
+            // move the hero; in Part 2 you’ll also move enemies here
+            MoveHero(direction);
+        }
     }
 }

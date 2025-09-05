@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace GADE6122
 {
-    public class EmptyTile : Tile
+    internal class ExitTile
     {
-        public EmptyTile(Position pos) : base(pos) { }
-        public override char Display => '.'; // empty floor
+
     }
 }

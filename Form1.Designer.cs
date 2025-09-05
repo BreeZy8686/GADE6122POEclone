@@ -33,10 +33,11 @@
             // 
             // lblDisplay
             // 
+            lblDisplay.AutoSize = true;
             lblDisplay.Font = new Font("Courier New", 12F);
             lblDisplay.Location = new Point(275, 132);
             lblDisplay.Name = "lblDisplay";
-            lblDisplay.Size = new Size(244, 309);
+            lblDisplay.Size = new Size(88, 18);
             lblDisplay.TabIndex = 0;
             lblDisplay.Text = "Display:";
             // 
@@ -48,7 +49,9 @@
             Controls.Add(lblDisplay);
             Name = "Form1";
             Text = "Form1";
+            Load += Form1_Load;
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

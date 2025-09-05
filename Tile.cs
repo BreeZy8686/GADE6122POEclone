@@ -9,9 +9,13 @@ namespace GADE6122
 
     public abstract class Tile
     {
-        public Position Position { get; protected set; }
+        // location of this tile on the map
+        public Position Position { get; set; }
+
+        // single character used to draw the tile
         public abstract char Display { get; }
 
+        // constructor: sets starting position
         protected Tile(Position position)
         {
             Position = position;

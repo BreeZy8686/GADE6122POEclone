@@ -10,18 +10,26 @@ namespace GADE6122
         private readonly Tile[,] _tiles;
         private readonly Random _random;
 
-        // <<< added: store the hero reference
+        // store the hero reference
         private HeroTile _hero;
+
+        // store the exit reference
+        private ExitTile _exit;
 
         public int Width => _width;
         public int Height => _height;
         public Tile[,] Tiles => _tiles;
 
-        // <<< added: expose hero as read-only
+        // expose hero as read-only
         public HeroTile Hero => _hero;
 
+        // expose exit as read-only
+        public ExitTile Exit => _exit;
+
         // <<< added: enum with Hero value
-        public enum TileType { Empty, Wall, Hero }
+        public enum TileType { Empty, Wall, Hero,
+            Exit
+        }
 
         // <<< CHANGED SIGNATURE: optional HeroTile parameter with default null
         public Level(int width, int height, Random? random = null, HeroTile? hero = null)
@@ -55,6 +63,11 @@ namespace GADE6122
 
             // Optional: update the hero's vision based on current map
             _hero.UpdateVision(this);
+
+            // find another random empty cell and place the exit there
+            Position exitPos = GetRandomEmptyPosition();
+            _exit = (ExitTile)CreateTile(TileType.Exit, exitPos);
+            _tiles[exitPos.X, exitPos.Y] = _exit;
         }
 
         // Builds the map: walls on the outer border, empty tiles inside.
@@ -82,7 +95,8 @@ namespace GADE6122
             {
                 TileType.Wall => new WallTile(pos),
                 TileType.Hero => new HeroTile(pos),
-                _ => new EmptyTile(pos),  // TileType.Empty (default)
+                TileType.Exit => new ExitTile(pos), 
+                _ => new EmptyTile(pos),
             };
         }
 
@@ -146,5 +160,7 @@ namespace GADE6122
                 // I’ll give you a tiny internal setter method.
                 t.Position = p;
         }
+
+
     }
 }

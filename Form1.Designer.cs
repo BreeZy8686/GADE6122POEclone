@@ -36,7 +36,7 @@
             lblDisplay.Font = new Font("Courier New", 12F);
             lblDisplay.Location = new Point(275, 132);
             lblDisplay.Name = "lblDisplay";
-            lblDisplay.Size = new Size(244, 155);
+            lblDisplay.Size = new Size(244, 309);
             lblDisplay.TabIndex = 0;
             lblDisplay.Text = "Display:";
             // 

@@ -8,40 +8,28 @@ namespace GADE6122
 {
     public class GameEngine
     {
-        // Fields
-        private Level currentLevel;   // stores the current level being played
-        private int numberOfLevels;   // stores the number of levels in the game
-        private Random random;        // used for rolling random numbers
+        private readonly Random _random = new Random();
+        private readonly int _numberOfLevels;
+        private int _currentIndex = 0;
 
-        // Constants
-        private const int MIN_SIZE = 10;
-        private const int MAX_SIZE = 20;
+        public Level CurrentLevel { get; private set; }
 
-        // Constructor
         public GameEngine(int numberOfLevels)
         {
-            this.numberOfLevels = numberOfLevels;
-            random = new Random();
-
-            // Create a new level with random width and height
-            int width = random.Next(MIN_SIZE, MAX_SIZE + 1);
-            int height = random.Next(MIN_SIZE, MAX_SIZE + 1);
-
-            currentLevel = new Level(width, height);
+            if (numberOfLevels <= 0) throw new ArgumentOutOfRangeException(nameof(numberOfLevels));
+            _numberOfLevels = numberOfLevels;
+            // Start with a default sized level
+            CurrentLevel = GenerateLevel(20, 10);
         }
 
-        // Property to access the current level
-        public Level CurrentLevel
+        private Level GenerateLevel(int width, int height)
         {
-            get { return currentLevel; }
+            return new Level(width, height, _random);
         }
 
-        // Override ToString() to return the current level's string form
         public override string ToString()
         {
-            return currentLevel.ToString();
+            return CurrentLevel.ToString();
         }
-
-        
     }
 }

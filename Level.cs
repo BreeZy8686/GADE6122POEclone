@@ -1,80 +1,64 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace GADE6122
 {
     public class Level
     {
-        private Tile[,] _tiles;
-        private int _width;
-        private int _height;
+        private readonly int _width;
+        private readonly int _height;
+        private readonly Tile[,] _tiles;
+        private readonly Random _random;
 
         public int Width => _width;
         public int Height => _height;
+        public Tile[,] Tiles => _tiles;
 
-        public enum TileType
+        public Level(int width, int height, Random? random = null)
         {
-            Empty,
-            Wall,
-        }
-
-        public Level(int width, int height)
-        {
+            if (width < 3 || height < 3)
+                throw new ArgumentException("Level must be at least 3x3 to have walls.");
             _width = width;
             _height = height;
-            _tiles = new Tile[width, height];
-            InitialiseTiles(width, height);
+            _tiles = new Tile[_width, _height];
+            _random = random ?? new Random();
+
+            InitialiseTiles();
         }
 
-        public Tile CreateTile(TileType type, Position position)
+        // Builds the map: walls on the outer border, empty tiles inside.
+        private void InitialiseTiles()
         {
-            switch (type)
+            for (int y = 0; y < _height; y++)           // go through each row
             {
-                case TileType.Wall:
-                    return new WallTile(position);
-                case TileType.Empty:
-                    return new EmptyTile(position);
-                default:
-                    throw new ArgumentException("Unknown tile type");
-            }
-        }
-
-        private Tile CreateTile(TileType type, int x, int y)
-        {
-            return CreateTile(type, new Position(x, y));
-        }
-
-        public void InitialiseTiles(int width, int height)
-        {
-            _tiles = new Tile[width, height];
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
+                for (int x = 0; x < _width; x++)        // go through each column
                 {
-                    // Boundary tiles are walls, inner tiles are empty
-                    TileType type = (x == 0 || y == 0 || x == width - 1 || y == height - 1)
-                        ? TileType.Wall
-                        : TileType.Empty;
-                    _tiles[x, y] = CreateTile(type, x, y);
+                    // true when the cell is on any outer edge of the grid
+                    bool isBorder = (x == 0) || (y == 0) || (x == _width - 1) || (y == _height - 1);
+
+                    // place a WallTile at borders, otherwise an EmptyTile
+                    _tiles[x, y] = isBorder
+                        ? new WallTile(new Position(x, y))
+                        : new EmptyTile(new Position(x, y));
                 }
             }
         }
 
+        // Converts the grid to a text map for display in a label/console.
         public override string ToString()
         {
-            var result = new System.Text.StringBuilder();
-            for (int y = 0; y < _height; y++)
+            var sb = new System.Text.StringBuilder();
+
+            for (int y = 0; y < _height; y++)           // include the final row (y < _height)
             {
-                for (int x = 0; x < _width; x++)
+                for (int x = 0; x < _width; x++)        // include the final column
                 {
-                    result.Append(_tiles[x, y].Display);
+                    sb.Append(_tiles[x, y].Display);    // write each tile's display char
                 }
-                result.Append('\n');
+                sb.AppendLine();                         // new line after every row
             }
-            return result.ToString();
+
+            return sb.ToString();                        // do NOT TrimEnd() here
         }
     }
 }

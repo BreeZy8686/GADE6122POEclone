@@ -8,13 +8,8 @@ namespace GADE6122
 {
         public class WallTile : Tile
         {
-            public WallTile(Position position) : base(position)
-            {
-            }
+        public WallTile(Position position) : base(position) { }
 
-            public override char Display
-            {
-                get { return '█'; } // Use '#' or any character to represent a wall
-            }
-        }
+        public override char Display => '█';
     }
+}

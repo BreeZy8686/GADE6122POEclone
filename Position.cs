@@ -12,12 +12,13 @@ namespace GADE6122
         private int _x;
         private int _y;
 
-        // Constructor
+        // Constructor to initialize x and y
         public Position(int x, int y)
         {
             _x = x;
             _y = y;
         }
+
         // Properties
         public int X
         {

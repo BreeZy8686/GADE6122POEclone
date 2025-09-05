@@ -17,7 +17,8 @@ namespace GADE6122
 
         public enum TileType
         {
-            Empty
+            Empty,
+            Wall,
         }
 
         public Level(int width, int height)
@@ -25,35 +26,39 @@ namespace GADE6122
             _width = width;
             _height = height;
             _tiles = new Tile[width, height];
-            InitialiseTiles();
+            InitialiseTiles(width, height);
         }
 
-        private Tile CreateTile(TileType type, Position position)
+        public Tile CreateTile(TileType type, Position position)
         {
-            Tile tile = type switch
+            switch (type)
             {
-                TileType.Empty => new EmptyTile(position),
-                // Add other TileType cases here if needed
-                _ => throw new ArgumentException("Invalid TileType")
-            };
-
-            _tiles[position.X, position.Y] = tile;
-            return tile;
+                case TileType.Wall:
+                    return new WallTile(position);
+                case TileType.Empty:
+                    return new EmptyTile(position);
+                default:
+                    throw new ArgumentException("Unknown tile type");
+            }
         }
 
-        // Overloaded convenience method
         private Tile CreateTile(TileType type, int x, int y)
         {
             return CreateTile(type, new Position(x, y));
         }
 
-        private void InitialiseTiles()
+        public void InitialiseTiles(int width, int height)
         {
-            for (int x = 0; x < _width; x++)
+            _tiles = new Tile[width, height];
+            for (int x = 0; x < width; x++)
             {
-                for (int y = 0; y < _height; y++)
+                for (int y = 0; y < height; y++)
                 {
-                    CreateTile(TileType.Empty, x, y);
+                    // Boundary tiles are walls, inner tiles are empty
+                    TileType type = (x == 0 || y == 0 || x == width - 1 || y == height - 1)
+                        ? TileType.Wall
+                        : TileType.Empty;
+                    _tiles[x, y] = CreateTile(type, x, y);
                 }
             }
         }

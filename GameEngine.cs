@@ -28,7 +28,8 @@ namespace GADE6122
 
         private Level GenerateLevel(int width, int height)
         {
-            return new Level(width, height, _random);
+            int enemies = GetEnemiesForLevel(_currentIndex);
+            return new Level(width, height, enemies);
         }
 
 
@@ -41,11 +42,15 @@ namespace GADE6122
         }
 
         // NEW: create a level with random size; optionally reuse the same hero
+        // NEW: create a level with random size and correct enemy count;
+        // optionally reuse the same hero object
         private Level GenerateLevel(HeroTile? hero = null)
         {
             var (w, h) = RandomSize();
-            return new Level(w, h, _random, hero);
+            int enemies = GetEnemiesForLevel(_currentIndex);
+            return new Level(w, h, enemies);
         }
+
 
         // Moves to the next level, carrying the same HeroTile object across.
         private void NextLevel()
@@ -95,12 +100,45 @@ namespace GADE6122
             return true;
         }
 
+        private void MoveEnemies()
+        {
+            // Loop over each enemy in the current level
+            foreach (var enemy in CurrentLevel.Enemies)
+            {
+                if (enemy.IsDead)
+                    continue; // skip dead enemies
+
+                // Ask the enemy for its move
+                if (enemy.GetMove(out Tile? target) && target is EmptyTile)
+                {
+                    // swap the enemy with the target tile
+                    CurrentLevel.SwapTiles(enemy, target);
+                }
+            }
+
+            // refresh everyone’s vision after all movement
+            CurrentLevel.UpdateVision();
+        }
+
+
         // Public entry point that the Form will call.
         public void TriggerMovement(Direction direction)
         {
-            // move the hero; in Part 2 you’ll also move enemies here
-            MoveHero(direction);
+            // Move the hero first
+            bool heroMoved = MoveHero(direction);
+
+            // After the hero moves, move each enemy
+            MoveEnemies();
         }
+
+
+        private int GetEnemiesForLevel(int levelIndex)
+        {
+            // Level 1 → 1 enemy, Level 2 → 2 enemies, caps at 3
+            int n = 1 + levelIndex;
+            return n > 3 ? 3 : n;
+        }
+
         public override string ToString()
         {
             if (_state == GameState.Complete)

@@ -3,164 +3,147 @@ using System.Text;
 
 namespace GADE6122
 {
+    // Make TileType visible project-wide (used by Level + GameEngine)
+    public enum TileType
+    {
+        Empty,
+        Wall,
+        Exit,
+        Hero,
+        Enemy
+    }
+
     public class Level
     {
         private readonly int _width;
         private readonly int _height;
         private readonly Tile[,] _tiles;
-        private readonly Random _random;
+        private readonly Random _random = new Random();
 
-        // store the hero reference
         private HeroTile _hero;
-
-        // store the exit reference
         private ExitTile _exit;
+        private EnemyTile[] _enemies = Array.Empty<EnemyTile>();
 
-        public int Width => _width;
-        public int Height => _height;
+        // === Public API expected by the rest of the project ===
+        public HeroTile Hero => _hero;
+        public EnemyTile[] Enemies => _enemies;
+
+        // Some code references Level.Tiles — expose it read-only
         public Tile[,] Tiles => _tiles;
 
-        // expose hero as read-only
-        public HeroTile Hero => _hero;
-
-        // expose exit as read-only
-        public ExitTile Exit => _exit;
-
-        // <<< added: enum with Hero value
-        public enum TileType { Empty, Wall, Hero,
-            Exit
-        }
-
-        // <<< CHANGED SIGNATURE: optional HeroTile parameter with default null
-        public Level(int width, int height, Random? random = null, HeroTile? hero = null)
+        // Constructor: width, height, number of enemies
+        public Level(int width, int height, int numberOfEnemies)
         {
-            if (width < 3 || height < 3)
-                throw new ArgumentException("Level must be at least 3x3 to have walls.");
             _width = width;
             _height = height;
             _tiles = new Tile[_width, _height];
-            _random = random ?? new Random();
 
-            InitialiseTiles();      // builds walls + empty interior
-
-            // After building the grid, pick a random empty cell for the hero
-            Position pos = GetRandomEmptyPosition();
-
-            if (hero == null)
+            // Build border walls + empty interior
+            for (int y = 0; y < _height; y++)
             {
-                // No hero passed in -> create a new hero at the random position
-                _hero = (HeroTile)CreateTile(TileType.Hero, pos);
-            }
-            else
-            {
-                // Reuse existing hero -> move it to the random position
-                hero.MoveTo(pos);          // Position must be settable in Tile
-                _hero = hero;
-            }
-
-            // Place the hero into the tiles array so it renders on the map
-            _tiles[pos.X, pos.Y] = _hero;
-
-            // Optional: update the hero's vision based on current map
-            _hero.UpdateVision(this);
-
-            // find another random empty cell and place the exit there
-            Position exitPos = GetRandomEmptyPosition();
-            _exit = (ExitTile)CreateTile(TileType.Exit, exitPos);
-            _tiles[exitPos.X, exitPos.Y] = _exit;
-        }
-
-        // Builds the map: walls on the outer border, empty tiles inside.
-        private void InitialiseTiles()
-        {
-            for (int y = 0; y < _height; y++)           // go through each row
-            {
-                for (int x = 0; x < _width; x++)        // go through each column
+                for (int x = 0; x < _width; x++)
                 {
-                    // true when the cell is on any outer edge of the grid
-                    bool isBorder = (x == 0) || (y == 0) || (x == _width - 1) || (y == _height - 1);
-
-                    // place a WallTile at borders, otherwise an EmptyTile
-                    _tiles[x, y] = isBorder
-                        ? new WallTile(new Position(x, y))
-                        : new EmptyTile(new Position(x, y));
+                    bool border = (x == 0 || y == 0 || x == _width - 1 || y == _height - 1);
+                    _tiles[x, y] = CreateTile(border ? TileType.Wall : TileType.Empty, new Position(x, y));
                 }
             }
+
+            // Place hero and exit
+            _hero = new HeroTile(GetRandomEmptyPosition());
+            SetTile(_hero);
+
+            _exit = new ExitTile(GetRandomEmptyPosition());
+            SetTile(_exit);
+
+            // Place enemies
+            _enemies = new EnemyTile[numberOfEnemies];
+            for (int i = 0; i < numberOfEnemies; i++)
+            {
+                var pos = GetRandomEmptyPosition();
+                var enemy = (EnemyTile)CreateTile(TileType.Enemy, pos); // GruntTile
+                _enemies[i] = enemy;
+                SetTile(enemy);
+            }
+
+            UpdateVision();
         }
 
-        // <<< added: small factory to create tiles by type
-        private Tile CreateTile(TileType type, Position pos)
+        // Get a tile from the grid
+        public Tile GetTile(Position p) => _tiles[p.X, p.Y];
+
+        // Put a tile in the grid (uses its Position)
+        private void SetTile(Tile tile) => _tiles[tile.Position.X, tile.Position.Y] = tile;
+
+        // Update hero + enemy vision arrays
+        public void UpdateVision()
+        {
+            _hero.UpdateVision(this);
+            foreach (var e in _enemies)
+                e.UpdateVision(this);
+        }
+
+        // Factory for tiles (includes Enemy -> GruntTile)
+        public Tile CreateTile(TileType type, Position pos)
         {
             return type switch
             {
+                TileType.Empty => new EmptyTile(pos),
                 TileType.Wall => new WallTile(pos),
+                TileType.Exit => new ExitTile(pos),
                 TileType.Hero => new HeroTile(pos),
-                TileType.Exit => new ExitTile(pos), 
-                _ => new EmptyTile(pos),
+                TileType.Enemy => new GruntTile(pos),   // Q2.2 Grunt
+                _ => throw new ArgumentOutOfRangeException(nameof(type))
             };
         }
 
-        // <<< added: find a random empty position inside the map (not a wall)
-        private Position GetRandomEmptyPosition()
+        // Swap two tiles (your GameEngine calls SwapTiles with an 'a' and 'target')
+        public void SwapTiles(Tile a, Tile b)
+        {
+            var posA = a.Position;
+            var posB = b.Position;
+
+            // swap in grid
+            _tiles[posA.X, posA.Y] = b;
+            _tiles[posB.X, posB.Y] = a;
+
+            // update objects' positions
+            SetTilePosition(a, posB);
+            SetTilePosition(b, posA);
+
+            // keep vision fresh after movement
+            UpdateVision();
+        }
+
+        private void SetTilePosition(Tile t, Position p)
+        {
+            if (t is CharacterTile ct)
+                ct.MoveTo(p);
+            else
+                t.Position = p;
+        }
+
+        // Find a random empty location (avoids the border walls)
+        public Position GetRandomEmptyPosition()
         {
             while (true)
             {
-                int x = _random.Next(1, _width - 1);   // avoid border walls
+                int x = _random.Next(1, _width - 1);
                 int y = _random.Next(1, _height - 1);
-
                 if (_tiles[x, y] is EmptyTile)
                     return new Position(x, y);
             }
         }
 
-        // Converts the grid to a text map for display in a label/console.
         public override string ToString()
         {
-            var sb = new System.Text.StringBuilder();
-
-            for (int y = 0; y < _height; y++)           // include the final row (y < _height)
+            var sb = new StringBuilder();
+            for (int y = 0; y < _height; y++)
             {
-                for (int x = 0; x < _width; x++)        // include the final column
-                {
-                    sb.Append(_tiles[x, y].Display);    // write each tile's display char
-                }
-                sb.AppendLine();                         // new line after every row
+                for (int x = 0; x < _width; x++)
+                    sb.Append(_tiles[x, y].Display);
+                sb.AppendLine();
             }
-
-            return sb.ToString();                        // do NOT TrimEnd() here
+            return sb.ToString();
         }
-        // Swaps the positions of two tiles on the grid.
-        // Also updates their Position values to match the swap.
-        public void SwapTiles(Tile a, Tile b)
-        {
-            // read current positions
-            Position pa = a.Position;
-            Position pb = b.Position;
-
-            // swap them in the 2D array
-            _tiles[pa.X, pa.Y] = b;
-            _tiles[pb.X, pb.Y] = a;
-
-            // update the tiles' Position values
-            // (Position setter is protected in Tile, but CharacterTile exposes MoveTo;
-            // for non-character tiles, we assign via a small helper below.)
-            SetTilePosition(a, pb);
-            SetTilePosition(b, pa);
-        }
-
-        // Helper to update a tile's Position (works for any Tile).
-        private void SetTilePosition(Tile t, Position p)
-        {
-            // Characters have MoveTo, empty/wall do not — so we handle both cases.
-            if (t is CharacterTile ct)
-                ct.MoveTo(p);
-            else
-                // For basic tiles, we need a small setter path. If your Tile already
-                // has a public/protected set, this will compile. If not, tell me and
-                // I’ll give you a tiny internal setter method.
-                t.Position = p;
-        }
-
-
     }
 }

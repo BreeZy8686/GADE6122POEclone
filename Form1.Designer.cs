@@ -36,9 +36,9 @@
             // 
             lblDisplay.AutoSize = true;
             lblDisplay.Font = new Font("Courier New", 12F);
-            lblDisplay.Location = new Point(314, 176);
+            lblDisplay.Location = new Point(467, 227);
             lblDisplay.Name = "lblDisplay";
-            lblDisplay.Size = new Size(106, 22);
+            lblDisplay.Size = new Size(88, 18);
             lblDisplay.TabIndex = 0;
             lblDisplay.Text = "Display:";
             // 
@@ -46,20 +46,20 @@
             // 
             lblWasdMovement.AutoSize = true;
             lblWasdMovement.Font = new Font("Segoe UI", 15F);
-            lblWasdMovement.Location = new Point(49, 33);
+            lblWasdMovement.Location = new Point(456, 114);
             lblWasdMovement.Name = "lblWasdMovement";
-            lblWasdMovement.Size = new Size(198, 35);
+            lblWasdMovement.Size = new Size(157, 28);
             lblWasdMovement.TabIndex = 1;
             lblWasdMovement.Text = "WASD: To move!";
+            lblWasdMovement.Click += lblWasdMovement_Click;
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(914, 600);
+            ClientSize = new Size(1154, 961);
             Controls.Add(lblWasdMovement);
             Controls.Add(lblDisplay);
-            Margin = new Padding(3, 4, 3, 4);
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;

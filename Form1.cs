@@ -58,5 +58,10 @@ namespace GADE6122
             // show the current level from the game engine in the existing label
             lblDisplay.Text = gameEngine.ToString();
         }
+
+        private void lblWasdMovement_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

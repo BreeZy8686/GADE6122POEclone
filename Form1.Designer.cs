@@ -30,6 +30,7 @@
         {
             lblDisplay = new Label();
             lblWasdMovement = new Label();
+            lblHeroStats = new Label();
             SuspendLayout();
             // 
             // lblDisplay
@@ -53,14 +54,24 @@
             lblWasdMovement.Text = "WASD: To move!";
             lblWasdMovement.Click += lblWasdMovement_Click;
             // 
+            // lblHeroStats
+            // 
+            lblHeroStats.AutoSize = true;
+            lblHeroStats.Font = new Font("Courier New", 12F);
+            lblHeroStats.Location = new Point(847, 148);
+            lblHeroStats.Name = "lblHeroStats";
+            lblHeroStats.Size = new Size(108, 18);
+            lblHeroStats.TabIndex = 2;
+            lblHeroStats.Text = "Hero's HP:";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1154, 961);
+            Controls.Add(lblHeroStats);
             Controls.Add(lblWasdMovement);
             Controls.Add(lblDisplay);
-            KeyPreview = true;
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
@@ -72,5 +83,6 @@
 
         private Label lblDisplay;
         private Label lblWasdMovement;
+        private Label lblHeroStats;
     }
 }

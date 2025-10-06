@@ -13,6 +13,10 @@ namespace GADE6122
         // Current health points of the character.
         protected int hitPoints;
 
+        // Q3.3 — expose HP values for UI / engine checks
+        public int HitPoints => hitPoints;
+        public int MaxHitPoints => maxHitPoints;
+
         // Maximum health points the character can ever have.
         protected int maxHitPoints;
 
@@ -39,6 +43,14 @@ namespace GADE6122
             this.maxHitPoints = hitPoints;     // at start, max = current HP
             this.attackPower = attackPower;    // set attack power
         }
+
+        public void SetHitPoints(int value)
+        {
+            hitPoints = value;
+            if (hitPoints < 0) hitPoints = 0;
+            if (hitPoints > maxHitPoints) hitPoints = maxHitPoints;
+        }
+
 
         // Updates the vision array with the 4 tiles around the character.
         // This looks at the map stored in the Level class.
@@ -86,5 +98,6 @@ namespace GADE6122
         {
             Position = newPosition; // allowed because setter is protected in Tile
         }
+
     }
 }

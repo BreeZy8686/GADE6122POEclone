@@ -41,6 +41,17 @@ namespace GADE6122
             return (w, h);
         }
 
+        // Q3.3 — "current/max" HP for the UI
+        public string HeroStats
+        {
+            get
+            {
+                var h = CurrentLevel.Hero;
+                return $"{h.HitPoints}/{h.MaxHitPoints}";
+            }
+        }
+
+
 
         // NEW: create a level with random size; optionally reuse the same hero
         // NEW: create a level with random size and correct enemy count;
@@ -49,8 +60,11 @@ namespace GADE6122
         {
             var (w, h) = RandomSize();
             int enemies = GetEnemiesForLevel(_currentIndex);
-            return new Level(w, h, enemies);
+            return hero == null
+                ? new Level(w, h, enemies)
+                : new Level(w, h, enemies, hero);   // reuse hero; HP is preserved
         }
+
 
 
         // Moves to the next level, carrying the same HeroTile object across.
@@ -84,14 +98,28 @@ namespace GADE6122
             return false; // nothing to attack
         }
 
-        // Q3.1 — called by the form to trigger an attack.
+        // Hero attacks; if attack happened, enemies retaliate.
+        // Then check for hero death and set GameOver.
         public void TriggerAttack(Direction direction)
         {
+            if (_state == GameState.GameOver || _state == GameState.Complete)
+                return;
+
             bool success = HeroAttack(direction);
 
-            // Q3.2 will add enemy counter-attacks here:
-            // if (success) { EnemiesAttack(); }
+            if (success)
+            {
+                EnemiesAttack();
+
+                // Q3.3 — check if hero has died after counters
+                if (CurrentLevel.Hero.IsDead)
+                {
+                    _state = GameState.GameOver;
+                }
+            }
         }
+
+
 
         // Tries to move the hero in the requested direction.
         // Returns true if the move succeeded (empty target), false otherwise.
@@ -131,6 +159,32 @@ namespace GADE6122
             return true;
         }
 
+        // Q3.2 — Enemies attack the hero (and any valid targets) after a successful hero attack.
+        private void EnemiesAttack()
+        {
+            foreach (var enemy in CurrentLevel.Enemies)
+            {
+                if (enemy == null || enemy.IsDead)
+                    continue;
+
+                // Ask the enemy who it can attack (per your GruntTile.GetTargets implementation)
+                var targets = enemy.GetTargets();
+                if (targets == null || targets.Length == 0)
+                    continue;
+
+                // Attack all available targets (brief says: loop over each target and invoke Attack)
+                foreach (var target in targets)
+                {
+                    if (target != null && !enemy.IsDead && !target.IsDead)
+                        enemy.Attack(target);
+                }
+            }
+
+            // Optional: keep vision in sync if your HUD relies on it
+            CurrentLevel.UpdateVision();
+        }
+
+
         private void MoveEnemies()
         {
             // Loop over each enemy in the current level
@@ -152,15 +206,19 @@ namespace GADE6122
         }
 
 
-        // Public entry point that the Form will call.
+        // Guard: stop if game is already over
         public void TriggerMovement(Direction direction)
         {
-            // Move the hero first
-            bool heroMoved = MoveHero(direction);
+            if (_state == GameState.GameOver || _state == GameState.Complete)
+                return;
 
-            // After the hero moves, move each enemy
+            bool moved = MoveHero(direction);
+
+            // keep enemies moving every time the hero moves
             MoveEnemies();
         }
+
+
 
 
         private int GetEnemiesForLevel(int levelIndex)
@@ -173,10 +231,13 @@ namespace GADE6122
         public override string ToString()
         {
             if (_state == GameState.Complete)
-                return "🎉 You reached the exit on the last level.\n Game complete! 🎉";
+                return "🎉 You reached the exit on the last level.\nGame complete! 🎉";
 
-            // GameOver will be handled later; for now treat as in progress
+            if (_state == GameState.GameOver)
+                return "Game Over! The hero has fallen.";
+
             return CurrentLevel.ToString();
         }
+
     }
 }

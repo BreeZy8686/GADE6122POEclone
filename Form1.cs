@@ -21,9 +21,15 @@ namespace GADE6122
 
         private void UpdateDisplay()
         {
-            // Assigns the GameEngine's ToString() result to the label
+            // refresh the map text
             lblDisplay.Text = gameEngine.ToString();
+
+            // OPTIONAL: if a label named "lblHeroStats" exists on the form, show HP there
+            var statsLabel = this.Controls.Find("lblHeroStats", true).FirstOrDefault() as Label;
+            if (statsLabel != null)
+                statsLabel.Text = gameEngine.HeroStats;
         }
+
 
         // Handles keyboard input to move the hero.
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -62,21 +68,31 @@ namespace GADE6122
             {
                 gameEngine.TriggerAttack(Direction.Left);
             }
+            // Testing shortcut — press H to set Hero HP = 1
+            else if (keyData == Keys.H)
+            {
+                gameEngine.CurrentLevel.Hero.SetHitPoints(1);
+
+                UpdateDisplay();
+            }
+
             else
             {
                 return base.ProcessCmdKey(ref msg, keyData);
             }
 
             // refresh UI after any action (movement or attack)
-            lblDisplay.Text = gameEngine.ToString();
+            UpdateDisplay();
             return true; // handled
         }
+
 
 
         private void Form1_Load(object sender, EventArgs e)
         {
             // show the current level from the game engine in the existing label
-            lblDisplay.Text = gameEngine.ToString();
+            UpdateDisplay();
+
         }
 
         private void lblWasdMovement_Click(object sender, EventArgs e)

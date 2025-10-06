@@ -68,6 +68,46 @@ namespace GADE6122
             UpdateVision();
         }
 
+        public Level(int width, int height, int numberOfEnemies, HeroTile existingHero)
+        {
+            _width = width;
+            _height = height;
+            _tiles = new Tile[_width, _height];
+
+            // Build border walls + empty interior
+            for (int y = 0; y < _height; y++)
+            {
+                for (int x = 0; x < _width; x++)
+                {
+                    bool border = (x == 0 || y == 0 || x == _width - 1 || y == _height - 1);
+                    _tiles[x, y] = CreateTile(border ? TileType.Wall : TileType.Empty, new Position(x, y));
+                }
+            }
+
+            // Reuse the SAME hero object (HP and all), just give it a new empty position
+            _hero = existingHero;
+            var heroPos = GetRandomEmptyPosition();
+            _hero.MoveTo(heroPos);
+            SetTile(_hero);
+
+            // Place exit
+            _exit = new ExitTile(GetRandomEmptyPosition());
+            SetTile(_exit);
+
+            // Place enemies
+            _enemies = new EnemyTile[numberOfEnemies];
+            for (int i = 0; i < numberOfEnemies; i++)
+            {
+                var pos = GetRandomEmptyPosition();
+                var enemy = (EnemyTile)CreateTile(TileType.Enemy, pos); // Grunt
+                _enemies[i] = enemy;
+                SetTile(enemy);
+            }
+
+            UpdateVision();
+        }
+
+
         // Get a tile from the grid
         public Tile GetTile(Position p) => _tiles[p.X, p.Y];
 

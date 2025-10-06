@@ -3,14 +3,15 @@ using System.Text;
 
 namespace GADE6122
 {
-    // Make TileType visible project-wide (used by Level + GameEngine)
+    // Added: Pickup to the map tile types
     public enum TileType
     {
         Empty,
         Wall,
         Exit,
         Hero,
-        Enemy
+        Enemy,
+        Pickup
     }
 
     public class Level
@@ -24,29 +25,31 @@ namespace GADE6122
         private ExitTile _exit;
         private EnemyTile[] _enemies = Array.Empty<EnemyTile>();
 
+        // NEW: store pickups
+        private PickupTile[] _pickups = Array.Empty<PickupTile>();
+
         // === Public API expected by the rest of the project ===
         public HeroTile Hero => _hero;
         public EnemyTile[] Enemies => _enemies;
+        public PickupTile[] Pickups => _pickups;
 
         // Some code references Level.Tiles — expose it read-only
         public Tile[,] Tiles => _tiles;
 
-        // Constructor: width, height, number of enemies
+        // ---------- Constructors ----------
+
+        // Keep original signature for backward-compat (spawns 0 pickups)
         public Level(int width, int height, int numberOfEnemies)
+            : this(width, height, numberOfEnemies, numberOfPickups: 0) { }
+
+        // NEW: width, height, enemies, pickups
+        public Level(int width, int height, int numberOfEnemies, int numberOfPickups)
         {
             _width = width;
             _height = height;
             _tiles = new Tile[_width, _height];
 
-            // Build border walls + empty interior
-            for (int y = 0; y < _height; y++)
-            {
-                for (int x = 0; x < _width; x++)
-                {
-                    bool border = (x == 0 || y == 0 || x == _width - 1 || y == _height - 1);
-                    _tiles[x, y] = CreateTile(border ? TileType.Wall : TileType.Empty, new Position(x, y));
-                }
-            }
+            BuildBaseMap();
 
             // Place hero and exit
             _hero = new HeroTile(GetRandomEmptyPosition());
@@ -65,16 +68,83 @@ namespace GADE6122
                 SetTile(enemy);
             }
 
+            // Place pickups
+            _pickups = new PickupTile[numberOfPickups];
+            for (int i = 0; i < numberOfPickups; i++)
+            {
+                var pos = GetRandomEmptyPosition();
+                var pickup = (PickupTile)CreateTile(TileType.Pickup, pos);
+                _pickups[i] = pickup;
+                SetTile(pickup);
+            }
+
             UpdateVision();
         }
 
-        // Get a tile from the grid
+        // Overload that reuses existing hero (HP carried across levels)
+        public Level(int width, int height, int numberOfEnemies, HeroTile existingHero)
+            : this(width, height, numberOfEnemies, numberOfPickups: 0, existingHero) { }
+
+        // NEW overload: enemies + pickups + existing hero
+        public Level(int width, int height, int numberOfEnemies, int numberOfPickups, HeroTile existingHero)
+        {
+            _width = width;
+            _height = height;
+            _tiles = new Tile[_width, _height];
+
+            BuildBaseMap();
+
+            // Reuse the SAME hero object (HP and all), just give it a new empty position
+            _hero = existingHero;
+            var heroPos = GetRandomEmptyPosition();
+            _hero.MoveTo(heroPos);
+            SetTile(_hero);
+
+            // Place exit
+            _exit = new ExitTile(GetRandomEmptyPosition());
+            SetTile(_exit);
+
+            // Place enemies
+            _enemies = new EnemyTile[numberOfEnemies];
+            for (int i = 0; i < numberOfEnemies; i++)
+            {
+                var pos = GetRandomEmptyPosition();
+                var enemy = (EnemyTile)CreateTile(TileType.Enemy, pos); // Grunt
+                _enemies[i] = enemy;
+                SetTile(enemy);
+            }
+
+            // Place pickups
+            _pickups = new PickupTile[numberOfPickups];
+            for (int i = 0; i < numberOfPickups; i++)
+            {
+                var pos = GetRandomEmptyPosition();
+                var pickup = (PickupTile)CreateTile(TileType.Pickup, pos);
+                _pickups[i] = pickup;
+                SetTile(pickup);
+            }
+
+            UpdateVision();
+        }
+
+        private void BuildBaseMap()
+        {
+            for (int y = 0; y < _height; y++)
+            {
+                for (int x = 0; x < _width; x++)
+                {
+                    bool border = (x == 0 || y == 0 || x == _width - 1 || y == _height - 1);
+                    _tiles[x, y] = CreateTile(border ? TileType.Wall : TileType.Empty, new Position(x, y));
+                }
+            }
+        }
+
+        // ---------- Public helpers ----------
+
         public Tile GetTile(Position p) => _tiles[p.X, p.Y];
 
-        // Put a tile in the grid (uses its Position)
         private void SetTile(Tile tile) => _tiles[tile.Position.X, tile.Position.Y] = tile;
 
-        // Update hero + enemy vision arrays
         public void UpdateVision()
         {
             _hero.UpdateVision(this);
@@ -82,7 +152,7 @@ namespace GADE6122
                 e.UpdateVision(this);
         }
 
-        // Factory for tiles (includes Enemy -> GruntTile)
+        // Factory for tiles (now includes Pickup -> HealthPickupTile)
         public Tile CreateTile(TileType type, Position pos)
         {
             return type switch
@@ -91,7 +161,8 @@ namespace GADE6122
                 TileType.Wall => new WallTile(pos),
                 TileType.Exit => new ExitTile(pos),
                 TileType.Hero => new HeroTile(pos),
-                TileType.Enemy => new GruntTile(pos),   // Q2.2 Grunt
+                TileType.Enemy => new GruntTile(pos),       // Q2.2 Grunt
+                TileType.Pickup => new HealthPickupTile(pos),// Q4.3 Health pickup
                 _ => throw new ArgumentOutOfRangeException(nameof(type))
             };
         }
@@ -112,6 +183,12 @@ namespace GADE6122
 
             // keep vision fresh after movement
             UpdateVision();
+        }
+
+        // Q4.3: when a pickup is consumed, turn that cell into an EmptyTile
+        public void ReplaceWithEmpty(Position p)
+        {
+            _tiles[p.X, p.Y] = new EmptyTile(p);
         }
 
         private void SetTilePosition(Tile t, Position p)

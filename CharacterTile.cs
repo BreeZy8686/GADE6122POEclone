@@ -13,6 +13,10 @@ namespace GADE6122
         // Current health points of the character.
         protected int hitPoints;
 
+        // Q3.3 — expose HP values for UI / engine checks
+        public int HitPoints => hitPoints;
+        public int MaxHitPoints => maxHitPoints;
+
         // Maximum health points the character can ever have.
         protected int maxHitPoints;
 
@@ -40,6 +44,14 @@ namespace GADE6122
             this.attackPower = attackPower;    // set attack power
         }
 
+        public void SetHitPoints(int value)
+        {
+            hitPoints = value;
+            if (hitPoints < 0) hitPoints = 0;
+            if (hitPoints > maxHitPoints) hitPoints = maxHitPoints;
+        }
+
+
         // Updates the vision array with the 4 tiles around the character.
         // This looks at the map stored in the Level class.
         public void UpdateVision(Level level)
@@ -56,6 +68,16 @@ namespace GADE6122
             vision[3] = tiles[x - 1, y]; // tile to the left
         }
 
+        public void Heal(int amount)
+        {
+            if (IsDead) return; // dead characters can’t be healed
+
+            hitPoints += amount;
+            if (hitPoints > maxHitPoints)
+                hitPoints = maxHitPoints; // clamp to max
+        }
+
+
         // Reduces HP by the damage amount.
         // HP will never drop below 0.
         public void TakeDamage(int amount)
@@ -66,11 +88,14 @@ namespace GADE6122
         }
 
         // Attacks another character by dealing this character's attackPower as damage.
-        public void Attack(CharacterTile target)
+        // Reduce target's HP by this character's attack power. (updated for Q3.1)
+        public virtual void Attack(CharacterTile target)
         {
-            if (target == null) return;      // skip if no target
-            target.TakeDamage(attackPower);  // apply damage to target
+            if (IsDead) return;
+            target.hitPoints -= attackPower;
+            if (target.hitPoints < 0) target.hitPoints = 0;
         }
+
 
         // Returns true if this character's HP is 0 or less (dead).
         public bool IsDead => hitPoints <= 0;
@@ -83,5 +108,6 @@ namespace GADE6122
         {
             Position = newPosition; // allowed because setter is protected in Tile
         }
+
     }
 }

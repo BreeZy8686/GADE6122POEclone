@@ -41,6 +41,7 @@ namespace GADE6122
             return (w, h);
         }
 
+
         // NEW: create a level with random size; optionally reuse the same hero
         // NEW: create a level with random size and correct enemy count;
         // optionally reuse the same hero object
@@ -60,8 +61,38 @@ namespace GADE6122
             CurrentLevel = GenerateLevel(hero);             // new level, same hero
         }
 
+        // Q3.1 — Hero attacks in a direction.
+        // Returns true if an attack happened (i.e., a CharacterTile was in that direction).
+        private bool HeroAttack(Direction direction)
+        {
+            if (direction == Direction.None)
+                return false;
 
-        
+            var hero = CurrentLevel.Hero;
+
+            // 0=Up, 1=Right, 2=Down, 3=Left (same indexing used for movement)
+            int idx = (int)direction;
+            Tile target = hero.Vision[idx];
+
+            // Only attack if there is a character there (e.g., an enemy)
+            if (target is CharacterTile character)
+            {
+                hero.Attack(character);   // uses your character attack logic
+                return true;
+            }
+
+            return false; // nothing to attack
+        }
+
+        // Q3.1 — called by the form to trigger an attack.
+        public void TriggerAttack(Direction direction)
+        {
+            bool success = HeroAttack(direction);
+
+            // Q3.2 will add enemy counter-attacks here:
+            // if (success) { EnemiesAttack(); }
+        }
+
         // Tries to move the hero in the requested direction.
         // Returns true if the move succeeded (empty target), false otherwise.
         private bool MoveHero(Direction direction)
@@ -142,7 +173,7 @@ namespace GADE6122
         public override string ToString()
         {
             if (_state == GameState.Complete)
-            return "🎉 You reached the exit on the last level.\n Game complete! 🎉";
+                return "🎉 You reached the exit on the last level.\n Game complete! 🎉";
 
             // GameOver will be handled later; for now treat as in progress
             return CurrentLevel.ToString();

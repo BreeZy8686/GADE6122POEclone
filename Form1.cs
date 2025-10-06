@@ -28,30 +28,50 @@ namespace GADE6122
         // Handles keyboard input to move the hero.
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            Direction dir = Direction.None;
-
-            // Arrow keys
-            if (keyData == Keys.Up) dir = Direction.Up;
-            else if (keyData == Keys.Right) dir = Direction.Right;
-            else if (keyData == Keys.Down) dir = Direction.Down;
-            else if (keyData == Keys.Left) dir = Direction.Left;
-
-            // Optional: WASD
-            else if (keyData == Keys.W) dir = Direction.Up;
-            else if (keyData == Keys.D) dir = Direction.Right;
-            else if (keyData == Keys.S) dir = Direction.Down;
-            else if (keyData == Keys.A) dir = Direction.Left;
-
-            if (dir != Direction.None)
+            // Movement with WASD
+            if (keyData == Keys.W)
             {
-                // ask the engine to move, then redraw the map
-                gameEngine.TriggerMovement(dir);
-                UpdateDisplay();
-                return true; // key handled
+                gameEngine.TriggerMovement(Direction.Up);
+            }
+            else if (keyData == Keys.D)
+            {
+                gameEngine.TriggerMovement(Direction.Right);
+            }
+            else if (keyData == Keys.S)
+            {
+                gameEngine.TriggerMovement(Direction.Down);
+            }
+            else if (keyData == Keys.A)
+            {
+                gameEngine.TriggerMovement(Direction.Left);
+            }
+            // Attacks with Arrow Keys
+            else if (keyData == Keys.Up)
+            {
+                gameEngine.TriggerAttack(Direction.Up);
+            }
+            else if (keyData == Keys.Right)
+            {
+                gameEngine.TriggerAttack(Direction.Right);
+            }
+            else if (keyData == Keys.Down)
+            {
+                gameEngine.TriggerAttack(Direction.Down);
+            }
+            else if (keyData == Keys.Left)
+            {
+                gameEngine.TriggerAttack(Direction.Left);
+            }
+            else
+            {
+                return base.ProcessCmdKey(ref msg, keyData);
             }
 
-            return base.ProcessCmdKey(ref msg, keyData);
+            // refresh UI after any action (movement or attack)
+            lblDisplay.Text = gameEngine.ToString();
+            return true; // handled
         }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {

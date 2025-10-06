@@ -23,6 +23,7 @@ namespace GADE6122
         // 'X' when alive, 'x' when dead
         public override char Display => IsDead ? 'x' : 'X';
 
+
         /// <summary>
         /// Picks a random empty tile from the vision array.
         /// If none are empty, returns false and sets out parameter to null.

@@ -66,11 +66,14 @@ namespace GADE6122
         }
 
         // Attacks another character by dealing this character's attackPower as damage.
-        public void Attack(CharacterTile target)
+        // Reduce target's HP by this character's attack power. (updated for Q3.1)
+        public virtual void Attack(CharacterTile target)
         {
-            if (target == null) return;      // skip if no target
-            target.TakeDamage(attackPower);  // apply damage to target
+            if (IsDead) return;
+            target.hitPoints -= attackPower;
+            if (target.hitPoints < 0) target.hitPoints = 0;
         }
+
 
         // Returns true if this character's HP is 0 or less (dead).
         public bool IsDead => hitPoints <= 0;

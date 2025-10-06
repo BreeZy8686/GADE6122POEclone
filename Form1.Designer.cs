@@ -60,6 +60,7 @@
             ClientSize = new Size(1154, 961);
             Controls.Add(lblWasdMovement);
             Controls.Add(lblDisplay);
+            KeyPreview = true;
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;

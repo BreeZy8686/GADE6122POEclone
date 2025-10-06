@@ -123,6 +123,50 @@ namespace GADE6122
             }
         }
 
+        // Q3.1 — Hero attacks in a direction.
+        // Returns true if an attack happened (i.e., a CharacterTile was in that direction).
+        private bool HeroAttack(Direction direction)
+        {
+            if (direction == Direction.None)
+                return false;
+
+            var hero = CurrentLevel.Hero;
+
+            // 0=Up, 1=Right, 2=Down, 3=Left (same indexing used for movement)
+            int idx = (int)direction;
+            Tile target = hero.Vision[idx];
+
+            // Only attack if there is a character there (e.g., an enemy)
+            if (target is CharacterTile character)
+            {
+                hero.Attack(character);   // uses your character attack logic
+                return true;
+            }
+
+            return false; // nothing to attack
+        }
+
+        // Hero attacks; if attack happened, enemies retaliate.
+        // Then check for hero death and set GameOver.
+        public void TriggerAttack(Direction direction)
+        {
+            if (_state == GameState.GameOver || _state == GameState.Complete)
+                return;
+
+            bool success = HeroAttack(direction);
+
+            if (success)
+            {
+                EnemiesAttack();
+
+                // Q3.3 — check if hero has died after counters
+                if (CurrentLevel.Hero.IsDead)
+                {
+                    _state = GameState.GameOver;
+                }
+            }
+        }
+
 
 
         // Tries to move the hero in the requested direction.

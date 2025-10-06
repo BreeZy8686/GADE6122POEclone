@@ -139,8 +139,7 @@ namespace GADE6122
             }
         }
 
-        // ---------- Public helpers ----------
-
+        // Get a tile from the grid
         public Tile GetTile(Position p) => _tiles[p.X, p.Y];
 
         private void SetTile(Tile tile) => _tiles[tile.Position.X, tile.Position.Y] = tile;
